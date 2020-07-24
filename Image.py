@@ -2,7 +2,7 @@ from PIL import Image as Picture
 import numpy as np
 import matplotlib.pyplot as plt
 from math import sqrt
-from routines import store, min_max_mean_hist, movement, cross_correlation
+from routines import store, min_max_mean_hist, movement, cross_correlation, median
 
 
 class Image(object):
@@ -188,27 +188,28 @@ class Image(object):
 				return store(result, result_path)
 
 
-	def convolution(self, filter, stride, method="VALID"):
+	def convolution(self, filter, stride, method, result_path):
 		size = filter.shape[0]
 		assert size == filter.shape[1], "Votre matrice vous servant de filtre n'est pas carré"
 		assert type(stride) == int, "Le stride doit etre un entier"
-		
+		assert method in ["VALID", "SAME"], "Méthode invalide, vous devez choisir entre SAME et VALID"
+
 		if method == "VALID":
 			numpy_image = np.asarray(self.content)
 			new_width = round((self.width - size) / stride)
 			new_height = round((self.height - size) / stride)
-			result = np.ones((new_width, new_height))
+			result = np.ones((new_width, new_height), dtype=np.uint8)
 			for x in range(new_width):
 				for y in range(new_height):
 					a = movement(x, stride, size)
 					b = movement(y, stride, size)
 					result[x, y] = cross_correlation(numpy_image[b-size: b, a-size: a], filter)
-			return result
+			return store(result, result_path)
 		
 		if method == "SAME":
 			new_width = round((self.width - size) / stride) + 1
 			new_height = round((self.height - size) / stride) + 1
-			result = np.ones((new_width, new_height))
+			result = np.ones((new_width, new_height), dtype=np.uint8)
 
 			numpy_image = np.zeros((movement(new_width, stride, size), movement(new_height, stride, size)))
 			print(numpy_image.shape)
@@ -220,8 +221,23 @@ class Image(object):
 					a = movement(x, stride, size)
 					b = movement(y, stride, size)
 					result[x, y] = cross_correlation(numpy_image[b-size: b, a-size: a], filter)
-			return result
+			return store(result, result_path)
 
+
+	def filter_median(self, size, stride, result_path):
+		assert type(stride) == int, "Le stride doit etre un entier"
+		assert type(size) == int,  "La taille doit etre un entier"
+
+		numpy_image = np.asarray(self.content)
+		new_width = round((self.width - size) / stride)
+		new_height = round((self.height - size) / stride)
+		result = np.ones((new_width, new_height), dtype=np.uint8)
+		for x in range(new_width):
+			for y in range(new_height):
+				a = movement(x, stride, size)
+				b = movement(y, stride, size)
+				result[x, y] = median(numpy_image[b-size: b, a-size: a])
+		return store(result, result_path)
 
 """
 # Open

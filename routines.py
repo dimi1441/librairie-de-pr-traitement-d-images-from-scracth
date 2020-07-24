@@ -27,8 +27,20 @@ def min_max_mean_hist(content, width, height):
 
 
 def cross_correlation(matrix1, matrix2):
-	return np.sum(matrix1*matrix2)
+	result = np.sum(matrix1*matrix2)
+	if result > 255:
+		return 255
+	elif result < 0:
+		return 0
+	else:
+		return result
 
 
 def movement(x, stride, size):
 	return stride*x + size
+
+
+def median(matrix):
+	vector = np.sort(matrix.reshape(1, -1)[0])
+	middle = round(len(vector)/2)
+	return vector[middle]
