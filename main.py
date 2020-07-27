@@ -2,12 +2,8 @@
 
 import Image
 import numpy as np
+from routines import read_pgm
 
-im1 = Image.Image("data/input/tour2.jpeg")
-filtre = np.array([[-1, 0, 1], [-1, 0, 1], [-1, 0, 1]])
-
-#a = filtre.reshape(1, -1)
-#print(a)
-#print(a[0].sort())
-
-im1.filter_median(3, 2, "data/output/med.jpeg")
+im1 = Image.Image("data/input/cerf.jpeg")
+filter = np.array([[-1, -1, -1], [0, 0, 0], [1, 1, 1]])
+im1.interpollation(2, "knn", "data/output/result.jpeg")

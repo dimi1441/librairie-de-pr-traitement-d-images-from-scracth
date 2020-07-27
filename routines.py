@@ -1,8 +1,37 @@
 from PIL import Image as Picture
 import numpy as np
 
+
+def read_pgm(file_name):
+	"""Return a raster of integers from a PGM as a list of lists."""
+	pgmf = open(file_name, "r")
+
+	assert pgmf.readline() == 'P2\n', "Magic number incompatible"
+	second_line = pgmf.readline()
+	if '#' in second_line:
+		(width, height) = [int(i) for i in pgmf.readline().split()]
+	else:
+		(width, height) = [int(i) for i in second_line.split()]
+	depth = int(pgmf.readline())
+	assert depth <= 255, "Image de 8 bits par pixels."
+	
+	raster = []
+	
+	for y in range(height):
+		row = []
+		print(pgmf.readline())
+		"""
+		for y in range(width):
+			row.append(pgmf.read(1))
+		raster.append(row)
+		"""
+	pgmf.close()
+	
+	return raster
+
+
 def store(result, path):
-	"Transform un numpy array en image que l'on stock et affiche à l'écran"
+	""" Transform numpy array into image and store the result """
 	extension = path.split(".")[-1]
 	image = Picture.fromarray(result).save(path, extension)
 	image = Picture.open(path).convert('L')	
@@ -11,6 +40,7 @@ def store(result, path):
 
 
 def min_max_mean_hist(content, width, height):
+	""" Compute min, max, mean and hist of image pixels """
 	min = 255
 	max = 0
 	sum = 0
@@ -27,6 +57,7 @@ def min_max_mean_hist(content, width, height):
 
 
 def cross_correlation(matrix1, matrix2):
+	""" Compute cross entropy """
 	result = np.sum(matrix1*matrix2)
 	if result > 255:
 		return 255
@@ -37,10 +68,12 @@ def cross_correlation(matrix1, matrix2):
 
 
 def movement(x, stride, size):
+	""" Deplacement in image which we want to convoluate """
 	return stride*x + size
 
 
 def median(matrix):
+	""" Calculate the median for a flatten matrix """
 	vector = np.sort(matrix.reshape(1, -1)[0])
 	middle = round(len(vector)/2)
 	return vector[middle]

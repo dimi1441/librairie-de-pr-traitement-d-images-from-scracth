@@ -12,6 +12,7 @@ class Image(object):
 		self.width, self.height = self.content.size
 		self.min, self.max, self.mean, self.hist = min_max_mean_hist(self.content, self.width, self.height)
 
+
 	# Luminance and contrast
 
 	def luminance(self):
@@ -149,7 +150,7 @@ class Image(object):
 
 	# Ameliorer le contraste
 
-	def improve_contraste(self, func, result_path):
+	def enhance_contraste(self, func, result_path):
 		result = np.ones((self.height, self.width), dtype=np.uint8)
 
 		LUT = list(range(256))
@@ -183,16 +184,16 @@ class Image(object):
 			result = np.ones((size*self.height, size*self.width), dtype=np.uint8)
 			for x in range(self.width):
 				for y in range(self.height):
-					result[y:y+size, x:x+size] = self.content.getpixel((x, y))*np.ones((size, size))
+					result[y:y+size, x:x+size] = self.content.getpixel((x, y))
 			if x == self.width-1  and y == self.height-1:
 				return store(result, result_path)
 
 
 	def convolution(self, filter, stride, method, result_path):
 		size = filter.shape[0]
-		assert size == filter.shape[1], "Votre matrice vous servant de filtre n'est pas carré"
+		assert size == filter.shape[1], "Votre matrice vous servant de filtre n'est pas carre"
 		assert type(stride) == int, "Le stride doit etre un entier"
-		assert method in ["VALID", "SAME"], "Méthode invalide, vous devez choisir entre SAME et VALID"
+		assert method in ["VALID", "SAME"], "Methode invalide, vous devez choisir entre SAME et VALID"
 
 		if method == "VALID":
 			numpy_image = np.asarray(self.content)
@@ -207,20 +208,19 @@ class Image(object):
 			return store(result, result_path)
 		
 		if method == "SAME":
+
 			new_width = round((self.width - size) / stride) + 1
 			new_height = round((self.height - size) / stride) + 1
 			result = np.ones((new_width, new_height), dtype=np.uint8)
 
 			numpy_image = np.zeros((movement(new_width, stride, size), movement(new_height, stride, size)))
-			print(numpy_image.shape)
-			numpy_image[0:self.height, 0:self.width] = np.asarray(self.content)
-			print(numpy_image)
-
+			numpy_image[0:self.width, 0:self.height] = np.transpose(np.asarray(self.content))
+			
 			for x in range(new_width):
 				for y in range(new_height):
 					a = movement(x, stride, size)
 					b = movement(y, stride, size)
-					result[x, y] = cross_correlation(numpy_image[b-size: b, a-size: a], filter)
+					result[x, y] = cross_correlation(numpy_image[a-size: a, b-size: b], filter)
 			return store(result, result_path)
 
 
@@ -238,23 +238,3 @@ class Image(object):
 				b = movement(y, stride, size)
 				result[x, y] = median(numpy_image[b-size: b, a-size: a])
 		return store(result, result_path)
-
-"""
-# Open
-image = Picture.open("data/lion.jpeg")
-
-# Mettre en gris
-image = Picture.convert('L')
-
-# Afficher
-image.show()
-
-# Sauvegarder
-image.save('gray-pillow.jpeg', 'jpeg')
-
-# De numpy à une image Pillow
-fromarray() function in PIL.Image
-
-# D'une image Pillow à numpy
-
-"""
