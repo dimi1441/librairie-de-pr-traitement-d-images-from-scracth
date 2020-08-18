@@ -222,7 +222,8 @@ class Image(object):
 			result = np.zeros((size*self.height, size*self.width), dtype=np.uint8)
 			for x in range(self.height):
 				for y in range(self.width):
-					result[x:x+size, y:y+size] = self.content[x, y]*np.ones((2, 2), dtype=np.uint8)
+					result[x:x+size, y:y+size] = self.content[x, y]
+					print(result[x:x+size, y:y+size])
 			store(result, result_path)
 			return Image(result_path)
 		else:
