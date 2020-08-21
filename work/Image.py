@@ -84,9 +84,6 @@ class Image(object):
 			intensities.append(numpy_matrix[y, x])
 			numpy_matrix[y, x] = color
 
-		print(intensities)
-		print(values_for_y)
-
 		# Plot
 		#intensities = intensities.reverse()
 		plt.plot(intensities[::-1])
@@ -120,12 +117,7 @@ class Image(object):
 		result = np.ones((self.height, self.width), dtype=np.uint8)
 		for x in range(self.height):
 			for y in range(self.width):
-				try :
-					result[x, y] = min(self.content[x, y] + image.content[x, y], 255)
-				except RuntimeException():
-					print(self.content[x, y])
-					print(image.content[x, y])
-					print(result[x, y])
+				result[x, y] = min(self.content[x, y] + image.content[x, y], 255)
 		store(result, result_path)
 		return Image(result_path)
 
@@ -182,20 +174,55 @@ class Image(object):
 
 	# Ameliorer le contraste
 
-	def enhance_contraste(self, func, result_path):
-		result = np.ones((self.height, self.width), dtype=np.uint8)
+	def enhance_contrast(self, func, result_path):
+		result = np.zeros((self.height, self.width), dtype=np.uint8)
 
 		LUT = list(range(256))
 		for i in range(256):
 			LUT[i] = func(i)
 
-		for x in range(self.width):
-			for y in range(self.height):
+		for x in range(self.height):
+			for y in range(self.width):
 				result[x, y] = LUT[self.content[x, y]]
 		
 		store(result, result_path)
 		return Image(result_path)
 
+
+	def enhance_contrast_linearly(self, result_path):
+		result = np.zeros((self.height, self.width), dtype=np.uint8)
+
+		def func(i):
+			return 255*(i - self.min)/(self.max - self.min)
+
+		LUT = list(range(256))
+		for i in range(256):
+			LUT[i] = func(i)
+
+		for x in range(self.height):
+			for y in range(self.width):
+				result[x, y] = LUT[self.content[x, y]]
+		
+		store(result, result_path)
+		return Image(result_path)
+
+
+	def enhance_contrast_with_saturation(self, smin, smax, result_path):
+		result = np.zeros((self.height, self.width), dtype=np.uint8)
+
+		def func(i):
+			return 255*(i - smin)/(smax - smin)
+
+		LUT = list(range(256))
+		for i in range(256):
+			LUT[i] = func(i)
+
+		for x in range(self.height):
+			for y in range(self.width):
+				result[x, y] = LUT[self.content[x, y]]
+		
+		store(result, result_path)
+		return Image(result_path)
 
 
 	def histogram_equalization(self, result_path):
@@ -220,10 +247,14 @@ class Image(object):
 	def interpollation(self, size, method, result_path):
 		if method == "knn":
 			result = np.zeros((size*self.height, size*self.width), dtype=np.uint8)
+
+			index_x = 0
 			for x in range(self.height):
+				index_y = 0
 				for y in range(self.width):
-					result[x:x+size, y:y+size] = self.content[x, y]
-					print(result[x:x+size, y:y+size])
+					result[index_x:index_x+size, index_y:index_y+size] = self.content[x, y]*np.ones((size, size))
+					index_y += size
+				index_x += size
 			store(result, result_path)
 			return Image(result_path)
 		else:
@@ -305,3 +336,10 @@ class Image(object):
 
 			store(result, result_path)
 			return Image(result_path)
+
+
+	def gradiant_contour(self, filter, stride, method, result_path):
+		imx = self.convolution(filter, stride, method, "x"+result_path)
+		imy = self.convolution(np.transpose(filter), stride, method, "y"+result_path)
+
+		return imx.addition(imy, result_path)
