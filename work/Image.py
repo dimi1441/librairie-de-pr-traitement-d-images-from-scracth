@@ -224,15 +224,15 @@ class Image(object):
 		store(result, result_path)
 		return Image(result_path)
 
-
+		
 	def histogram_equalization(self, result_path):
 		normalized_histogram = self.hist / (self.width*self.height)
-		
+
 		density = np.array(range(256))
 		for i in range(256):
-			density[i] = np.sum(normalized_histogram[0:i+1])
-		
-		result = np.ones((self.height, self.width), dtype=np.uint8)
+			density[i] = np.sum(normalized_histogram[0, 0:i+1])
+		print(density)
+		result = np.zeros((self.height, self.width), dtype=np.uint8)
 		for x in range(self.height):
 			for y in range(self.width):
 				result[x, y] = np.round(density[self.content[x, y]]*255)
@@ -258,7 +258,7 @@ class Image(object):
 			store(result, result_path)
 			return Image(result_path)
 		else:
-			print("NON")
+			print("Les autres méthodes ne marchent pas.")
 
 
 	def convolution(self, filter, stride, method, result_path):
@@ -343,3 +343,8 @@ class Image(object):
 		imy = self.convolution(np.transpose(filter), stride, method, "y"+result_path)
 
 		return imx.addition(imy, result_path)
+
+
+	def laplacian(self, stride, method, result_path):
+		filter = np.array([[0, -1, 0], [-1, 4, -1], [0, -1, 0]])
+		return self.convolution(filter, stride, method, result_path)

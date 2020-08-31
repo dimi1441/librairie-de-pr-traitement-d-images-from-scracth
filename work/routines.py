@@ -1,5 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from collections import Counter
+
 
 def read_pgm(file_name):
 	"""Return a raster of integers from a PGM as a list of lists."""
@@ -54,10 +56,10 @@ def min_mean_hist(content, width, height):
 	""" Compute min, max, mean and hist of image pixels """
 	min = 255
 	sum = 0
-	hist = np.array(list(range(256)))
+	hist = np.zeros((1, 256))
 	for x in range(height):
 		for y in range(width):
-			hist[content[x, y]] += 1
+			hist[0, content[x, y]] += 1
 			sum += content[x, y]
 			if min > content[x, y]:
 				min = content[x, y]
